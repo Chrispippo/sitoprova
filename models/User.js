@@ -4,7 +4,6 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  // Altri campi (indirizzo, ecc.) possono essere aggiunti qui
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);
