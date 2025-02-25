@@ -4,59 +4,38 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Segreto per JWT (in ambiente di produzione, utilizzare variabili d'ambiente)
-const JWT_SECRET = "la_tua_chiave_segreta";
+const JWT_SECRET = "la_tua_chiave_segreta"; // Utilizza variabili d'ambiente in produzione
 
-// Registrazione
+// Rotta di registrazione
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    
-    // Controlla se l'utente esiste già
     const existingUser = await User.findOne({ email });
-    if(existingUser) {
-      return res.status(400).json({ message: "Email già registrata" });
-    }
+    if (existingUser) return res.status(400).json({ message: "Email già registrata" });
     
-    // Cripta la password
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword
-    });
-    
-    await user.save();
+    const newUser = new User({ name, email, password: hashedPassword });
+    await newUser.save();
     res.status(201).json({ message: "Utente registrato con successo" });
-  } catch(error) {
+  } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Errore lato server" });
   }
 });
 
-// Login
+// Rotta di login
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    // Trova l'utente
     const user = await User.findOne({ email });
-    if(!user) {
-      return res.status(400).json({ message: "Credenziali errate" });
-    }
+    if (!user) return res.status(400).json({ message: "Credenziali errate" });
     
-    // Verifica la password
     const isMatch = await bcrypt.compare(password, user.password);
-    if(!isMatch) {
-      return res.status(400).json({ message: "Credenziali errate" });
-    }
+    if (!isMatch) return res.status(400).json({ message: "Credenziali errate" });
     
-    // Crea il token JWT
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
-    
     res.json({ token, message: "Login effettuato con successo" });
-  } catch(error) {
+  } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Errore lato server" });
   }
